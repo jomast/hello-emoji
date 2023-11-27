@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloemoji-deployment
+  labels:
+    app: helloemoji
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: helloemoji
+  template:
+    metadata:
+      labels:
+        app: helloemoji
+    spec:
+      containers:
+        - name: helloemoji
+          image: jomast/helloemoji:latest
+          ports:
+            - containerPort: 3000
+              hostPort: 3000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: helloemoji-svc
+spec:
+  selector:
+    app: helloemoji
+  ports:
+    - protocol: TCP
+      name: helloemoji-svc
+      port: 3000
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: helloemoji-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: helloemoji-svc
+                port:
+                  number: 3000
